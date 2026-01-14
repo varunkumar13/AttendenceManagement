@@ -1,0 +1,111 @@
+.myBlueShape {
+  width: 50%;
+  height: 100vh;
+  background: rgba(8, 80, 156, 1);
+  clip-path: polygon(35% 0, 100% 0, 100% 100%, 0 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;     /* VERY IMPORTANT */
+  overflow: visible;      /* FIX: Don't hide logintab */
+  animation: slideRight 2.5s ease forwards;
+}
+
+@keyframes slideRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+.error {
+  color: red;
+  font-size: 0.9rem;
+  margin-top: 5px;
+}
+
+/* LOGIN TAB */
+.logintab {
+  background-color: white;
+  width: 46%;
+  height: 60vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  /* gap: 1rem; */
+  /* padding: 1rem; */
+  border-radius: 1rem;
+  margin-left: 7.5rem;
+  color: black;
+  position: relative;
+    z-index: 10; 
+    opacity: 0;           /* SUPER IMPORTANT: show above blue */
+  
+  animation: zoomFade 1s ease forwards; 
+  animation-delay: 1.5s;
+   /* Starts after blue slide animation */ }
+    /* Fade-in Keyframe */ 
+  @keyframes zoomFade { 
+    0% 
+    { opacity: 0; transform: scale(0.8); } 
+    100% 
+    { opacity: 1; transform: scale(1); } }
+
+
+/* BACKGROUND IMAGE */
+/* Background Container */
+.myBackgroundImage {
+  height: 70vh;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Background fade only */
+.myBackgroundImage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: url("../../assets/logo.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  opacity: 1;
+  animation: fadeSoft 2s ease-in-out forwards;
+  z-index: 0;
+}
+
+/* Background fading */
+@keyframes fadeSoft {
+  from { opacity: 1; }
+  to { opacity: 0.1; }
+}
+
+/* Lottie animation fade-in AFTER delay */
+.lottieShow {
+  opacity: 0;                       /* hidden initially */
+  animation: lottieFade 1s ease forwards;
+  animation-delay: 2s;              /* wait until background fade is done */
+  position: relative;
+  z-index: 1;                       /* on top of faded bg */
+}
+
+@keyframes lottieFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.welcomeText {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #0e55b9;
+  text-align: center;
+  margin-bottom: 1rem;
+  letter-spacing: 1px;
+  font-family: "Satisfy", cursive;
+
+}
