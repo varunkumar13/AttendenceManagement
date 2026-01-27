@@ -30,7 +30,7 @@ export default function TeacherScreen() {
 
   // pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const rowsPerPage = 7;
+  const rowsPerPage = 1000;
   useEffect(() => {
     const token = sessionStorage.getItem("key");
     if (token) {

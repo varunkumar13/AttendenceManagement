@@ -17,7 +17,7 @@ const DonutChart = ({ percentage }) => {
           cx={radius}
           cy={radius}
         />
-        <circle
+        <circle 
           stroke="#4caf50"
           fill="transparent"
           strokeWidth={stroke}

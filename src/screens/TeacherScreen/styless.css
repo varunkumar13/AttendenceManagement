@@ -183,6 +183,7 @@ body {
   width: 100%;
   border-collapse: collapse;
   margin-top: 10px;
+  overflow: auto;
 }
 
 .attendance-table thead {
@@ -210,6 +211,7 @@ body {
 
 .attendance-table tbody tr:hover {
   background: #eef2ff;
+  overflow: auto;
 }
 
 .student-name {
