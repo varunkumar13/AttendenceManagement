@@ -7,6 +7,7 @@ const HomeScreen = lazy(()=> import("../App"));
 const LoginScreen = lazy(()=> import("../screens/LoginScreen/login"));
 const AdminDashboard = lazy(()=> import("../screens/AdminScreens/adminDashboad"));
 const StudentDashboard = lazy(()=> import("../screens/StudentScreens/studentDashboard"));
+const TeacherDashboard = lazy(()=> import ("../screens/TeacherScreen/teacherScreen"))
 
 
 
@@ -37,6 +38,12 @@ const mainRoutes: RouteObject[] = [
             element: <StudentDashboard />
           }
         ]
+      },
+      
+          {
+            path: "teacherDashboard",
+            element: <TeacherDashboard />
+  
       }
     ]
   },

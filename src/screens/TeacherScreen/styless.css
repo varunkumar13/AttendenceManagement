@@ -1,0 +1,282 @@
+/* * {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #f4f6fb;
+  font-family: "Segoe UI", sans-serif;
+} */
+
+/* ================= LAYOUT ================= */
+.dashboard-root {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+  padding: 15px;
+}
+
+.left-panel {
+  flex: 3;
+}
+
+.right-panel {
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .dashboard-root {
+    flex-direction: column;
+  }
+}
+
+/* ================= PROFILE ================= */
+.profile-card {
+  background: rgb(8, 67, 131);
+  color: white;
+  border-radius: 18px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.teacher-icon {
+  color: white;
+  margin-right: 15px;
+}
+
+/* ================= TABS ================= */
+.tabs {
+  display: flex;
+  background: #eef1fb;
+  border-radius: 30px;
+  padding: 4px;
+  width: fit-content;
+  margin: 20px auto;
+}
+
+.tab-btn {
+  border: none;
+  background: transparent;
+  padding: 8px 22px;
+  border-radius: 25px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  color: #555;
+}
+
+.tab-btn.active {
+  background: rgb(8, 67, 131);
+  color: white;
+}
+
+/* ================= CARD ================= */
+.cardss {
+  background: white;
+  border-radius: 18px;
+  padding: 20px;
+}
+
+/* ================= TOOLBAR ================= */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+@media (max-width: 600px) {
+  .toolbar {
+    flex-direction: column;
+  }
+}
+
+/* ================= DATE ================= */
+.date-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f3f5ff;
+  padding: 8px 12px;
+  border-radius: 10px;
+}
+
+.date-box input {
+  border: none;
+  background: transparent;
+  outline: none;
+}
+
+/* ================= SEARCH ================= */
+.search-input {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  min-width: 200px;
+}
+
+.marks-search {
+  margin-bottom: 10px;
+  width: 200px;
+}
+
+/* ================= TABLE ================= */
+.table-wrapper {
+  overflow-x: auto;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+.attendance-table thead {
+  background: #f0f2fa;
+}
+
+.attendance-table th {
+  padding: 12px;
+  font-weight: 600;
+}
+
+.attendance-table td {
+  padding: 10px;
+  border-bottom: 1px solid #eee;
+}
+
+/* ROW COLORS */
+.attendance-table tbody tr:nth-child(even) {
+  background: #f9faff;
+}
+
+.attendance-table tbody tr:hover {
+  background: #eef2ff;
+}
+
+.student-name {
+  font-weight: 600;
+}
+
+.center {
+  text-align: center;
+}
+
+/* ================= RADIO ================= */
+.radio {
+  width: 18px;
+  height: 18px;
+}
+
+.present {
+  accent-color: #2ecc71;
+}
+
+.absent {
+  accent-color: #e74c3c;
+}
+
+/* ================= BUTTONS ================= */
+.primary-btn {
+  margin-top: 12px;
+  width: 100%;
+  background: rgb(8, 67, 131);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.secondary-btn {
+  background: #ddd;
+  border: none;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+/* ================= PAGINATION ================= */
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.pagination button {
+  border: none;
+  background: #eef1fb;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.pagination button.active {
+  background: rgb(8, 67, 131);
+  color: white;
+}
+
+.pagination button:disabled {
+  opacity: 0.5;
+}
+
+/* ================= MARKS ================= */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+  gap: 15px;
+}
+
+.student-tile {
+  background: white;
+  border-radius: 15px;
+  padding: 15px;
+  text-align: center;
+}
+
+.student-tile button {
+  margin-top: 10px;
+  background: rgb(8, 67, 131);
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 10px;
+}
+
+.student-avatar-icon {
+  color: #3a4bf3;
+  margin-bottom: 8px;
+}
+
+.student-info {
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.student-info p {
+  margin: 2px 0;
+}
+
+/* ================= MODAL ================= */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-box {
+  background: white;
+  border-radius: 15px;
+  padding: 20px;
+  width: 90%;
+  max-width: 350px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}

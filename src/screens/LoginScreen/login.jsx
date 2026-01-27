@@ -25,13 +25,13 @@ const handleSubmit = async () => {
     setError("Please fill all fields above");
     return;
   }
-
+// navigate("/teacherDashboard");
   setError("");
   setLoading(true);
 
   try {
     const response = await fetch(
-      "https://studentmanagement-production-643d.up.railway.app/api/v1/user/login",
+      "https://studentmanagement-production-23b8.up.railway.app/api/v1/user/login",
       {
         method: "POST",
         headers: {
@@ -66,6 +66,7 @@ const handleSubmit = async () => {
     const role = decoded.role || decoded.user_role || decoded.type;
 
     // Redirect based on role
+    
     if (role === "admin") {
       navigate("/adminDashboard");
     } else if (role === "teacher") {

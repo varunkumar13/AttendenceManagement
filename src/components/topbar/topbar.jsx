@@ -42,7 +42,7 @@ function ResponsiveAppBar() {
   };
 
   return (
-    <AppBar position="static" sx={{background:"linear-gradient(90deg,rgba(8, 80, 156, 1) 56%, rgba(240, 245, 245, 1) 100%);",padding:"none"}}
+    <AppBar position="static" sx={{background:"linear-gradient(90deg,rgb(8, 67, 131) 56%, rgba(240, 245, 245, 1) 100%);",padding:"none"}}
 >
       <Container maxWidth="xl">
         <Toolbar disableGutters>

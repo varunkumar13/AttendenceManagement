@@ -89,7 +89,7 @@ const fetchUsersByRole = async (role) => {
     const token = sessionStorage.getItem("key");
 
     const response = await fetch(
-      `https://studentmanagement-production-643d.up.railway.app/api/v1/user/getAll/${role}?page=0&&size=500`,
+      `https://studentmanagement-production-23b8.up.railway.app/api/v1/user/getAll/${role}?page=0&&size=500`,
       {
         method: "GET",
         headers: {
@@ -190,7 +190,7 @@ try {
   const token = sessionStorage.getItem("key");
 
   const response = await fetch(
-    "https://studentmanagement-production-643d.up.railway.app/api/v1/user/register",
+    "https://studentmanagement-production-23b8.up.railway.app/api/v1/user/register",
     {
       method: "POST",
       headers: {
@@ -259,7 +259,7 @@ try {
   const token = sessionStorage.getItem("key");
 
   const response = await fetch(
-    "https://studentmanagement-production-643d.up.railway.app/api/v1/user/register",
+    "https://studentmanagement-production-23b8.up.railway.app/api/v1/user/register",
     {
       method: "POST",
       headers: {

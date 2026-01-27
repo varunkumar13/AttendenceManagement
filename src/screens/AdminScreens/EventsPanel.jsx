@@ -22,7 +22,7 @@ export default function EventsPanel() {
       const token = sessionStorage.getItem("key");
 
       const response = await fetch(
-        "https://studentmanagement-production-643d.up.railway.app/api/v1/event/getAllEvent?page=0&size=10000",
+        "https://studentmanagement-production-23b8.up.railway.app/api/v1/event/getAllEvent?page=0&size=10000",
         {
           method: "GET",
           headers: {
@@ -43,7 +43,7 @@ export default function EventsPanel() {
       if (!response.ok) {
         throw new Error(data.message || "Failed to fetch events");
       }
-
+      
       const mappedEvents = (data.content || []).map((e) => ({
         id: e.id,
         title: e.title,
@@ -76,7 +76,7 @@ export default function EventsPanel() {
       const token = sessionStorage.getItem("key");
 
       const response = await fetch(
-        "https://studentmanagement-production-643d.up.railway.app/api/v1/event/addEvent",
+        "https://studentmanagement-production-23b8.up.railway.app/api/v1/event/addEvent",
         {
           method: "POST",
           headers: {
@@ -115,7 +115,7 @@ export default function EventsPanel() {
       <div className="calendar-box">
         <Calendar
           tileClassName={({ date }) => {
-            const formatted = date.toISOString().split("T")[0];
+            const formatted = date.toLocaleDateString("en-CA");
             const hasEvent = events.some((e) => e.event_date === formatted);
             return hasEvent ? "event-day" : null;
           }}
