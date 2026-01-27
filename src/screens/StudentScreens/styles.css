@@ -586,3 +586,27 @@ body {
     padding: 12px;
   }
 }
+.attendance-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* each row */
+.attendance-row {
+  display: flex;
+  gap: 12px;
+}
+
+/* cards in a row */
+.attendance-row .stat-card {
+  flex: 1;
+}
+
+/* make date inputs look neat */
+.stat-card input[type="date"] {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}

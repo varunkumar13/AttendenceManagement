@@ -13,6 +13,8 @@ import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import AdbIcon from '@mui/icons-material/Adb';
 import Lottie from "lottie-react";
+import { useNavigate } from "react-router-dom";
+
 import logo from "../../assets/logo.png"
 
 import profile from "../../assets/profile.json";
@@ -25,13 +27,23 @@ const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
 function ResponsiveAppBar() {
   const [anchorElNav, setAnchorElNav] = React.useState(null);
   const [anchorElUser, setAnchorElUser] = React.useState(null);
+  const navigate = useNavigate();
+
 
   const handleOpenNavMenu = (event) => {
     setAnchorElNav(event.currentTarget);
   };
-  const handleOpenUserMenu = (event) => {
-    setAnchorElUser(event.currentTarget);
-  };
+const handleOpenUserMenu = (event) => {
+  setAnchorElUser(event.currentTarget);
+
+  // clear storage
+  sessionStorage.clear();
+  localStorage.clear();
+
+  // navigate to login / home
+  navigate("/");
+};
+
 
   const handleCloseNavMenu = () => {
     setAnchorElNav(null);

@@ -41,9 +41,13 @@ const mainRoutes: RouteObject[] = [
       },
       
           {
+            element: <ProtectedRoute allowedRoles={["teacher"]} />,
+            children: [
+          {
             path: "teacherDashboard",
             element: <TeacherDashboard />
-  
+                      }
+        ]
       }
     ]
   },

@@ -1,191 +1,347 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./styless.css";
-import { FaUserCircle } from "react-icons/fa";
-import { FaUserGraduate } from "react-icons/fa";
+import { FaUserCircle, FaUserGraduate } from "react-icons/fa";
 import EventsPanel from "../AdminScreens/EventsPanel";
-
-
-
-
-const students = [
-  { id: 1, name: "Rahul" },
-  { id: 2, name: "Anita" },
-  { id: 3, name: "Suresh" },
-  { id: 4, name: "Priya" },
-  { id: 5, name: "Amit" },
-  { id: 6, name: "Kiran" },
-  { id: 7, name: "Rohit" }
-];
+import { jwtDecode } from "jwt-decode";
 
 export default function TeacherScreen() {
   const [tab, setTab] = useState("attendance");
-  const [showPopup, setShowPopup] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState(null);
 
-  // SEARCH
+  // USER
+  const [loggedInUser, setLoggedInUser] = useState(null);
+
+  // STUDENTS
+  const [students, setStudents] = useState([]);
+
+  // FILTERS
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+
+  // MARK ATTENDANCE
+  const [attendanceDate, setAttendanceDate] = useState("");
+  const [attendanceMap, setAttendanceMap] = useState({});
+
+  // ATTENDANCE LIST
+  const [attendanceList, setAttendanceList] = useState([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [statusFilter, setStatusFilter] = useState("ALL");
 
   // pagination
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 7;
+  useEffect(() => {
+    const token = sessionStorage.getItem("key");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setLoggedInUser(decoded);
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
+    }
+  }, []);
+  useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setFromDate(today);
+    setToDate(today);
+  }, []);
+  const fetchUsersByRole = async (role) => {
+    try {
+      const token = sessionStorage.getItem("key");
+      const response = await fetch(
+        `https://studentmanagement-production-23b8.up.railway.app/api/v1/user/getAll/${role}?page=0&&size=500`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-  // FILTERED STUDENTS (by name or roll)
-  const filteredStudents = students.filter(
-    (s) =>
+      const text = await response.text();
+      const data = text ? JSON.parse(text) : {};
+      if (!response.ok) throw new Error(data.message);
+
+      return data.content || [];
+    } catch (err) {
+      console.error("Fetch users error:", err.message);
+      return [];
+    }
+  };
+
+  useEffect(() => {
+    fetchUsersByRole("Student").then((res) => {
+      const mapped = res.map((u) => ({
+        id: u.userId,
+        name: u.name || u.userName,
+        email: u.userName,
+        branch: u.student?.[0]?.class_name || "",
+        section: u.student?.[0]?.section || ""
+      }));
+      setStudents(mapped);
+    });
+  }, []);
+
+  const branches = [...new Set(students.map((s) => s.branch).filter(Boolean))];
+  const sections = [...new Set(students.map((s) => s.section).filter(Boolean))];
+
+  const filteredStudents = students.filter((s) => {
+    const matchSearch =
       s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      s.id.toString().includes(searchTerm)
-  );
+      s.id.toString().includes(searchTerm);
+
+    const matchBranch = selectedBranch ? s.branch === selectedBranch : true;
+    const matchSection = selectedSection ? s.section === selectedSection : true;
+
+    return matchSearch && matchBranch && matchSection;
+  });
 
   const indexOfLastRow = currentPage * rowsPerPage;
   const indexOfFirstRow = indexOfLastRow - rowsPerPage;
   const currentStudents = filteredStudents.slice(indexOfFirstRow, indexOfLastRow);
   const totalPages = Math.ceil(filteredStudents.length / rowsPerPage);
 
-return (
-  <div className="dashboard-root">
+  const markAttendance = async (payload) => {
+    const token = sessionStorage.getItem("key");
+    const response = await fetch(
+      "https://studentmanagement-production-23b8.up.railway.app/api/v1/attendance/markAttendance",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      }
+    );
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(text || "Failed");
+    }
+  };
 
-    {/* LEFT MAIN PANEL */}
-    <div className="left-panel">
+  const submitAttendance = async () => {
+    if (!attendanceDate) {
+      alert("Select date");
+      return;
+    }
 
-      {/* PROFILE */}
-      <div className="profile-card">
-        <div className="teacher-icon">
-          <FaUserCircle size={70} />
-        </div>
-        <div>
-          <h2>Ella Brock</h2>
-          <p>Science Teacher</p>
-        </div>
-      </div>
+    const selected = students.filter((s) => attendanceMap[s.id]);
+    if (selected.length === 0) {
+      alert("Mark attendance");
+      return;
+    }
 
-      {/* TABS */}
-      <div className="tabs">
-        <button
-          className={`tab-btn ${tab === "attendance" ? "active" : ""}`}
-          onClick={() => { setTab("attendance"); setSearchTerm(""); }}
-        >
-          Mark Attendance
-        </button>
-        <button
-          className={`tab-btn ${tab === "marks" ? "active" : ""}`}
-          onClick={() => { setTab("marks"); setSearchTerm(""); }}
-        >
-          Add Marks
-        </button>
-      </div>
+    try {
+      for (const s of selected) {
+        const payload = {
+          student_UserName: s.email,
+          attendance_date: attendanceDate + "T00:00:00",
+          status: attendanceMap[s.id],
+          remark: "good"
+        };
+        await markAttendance(payload);
+      }
+      alert("Attendance submitted");
+      setAttendanceMap({});
+    } catch {
+      alert("Error submitting attendance");
+    }
+  };
 
-      {/* ATTENDANCE */}
-      {tab === "attendance" && (
-        <div className="cardss attendance-card" >
+  const fetchAttendanceList = async () => {
+    if (!fromDate || !toDate) {
+      alert("From and To date required");
+      return;
+    }
 
-          <div className="toolbar">
-            <div className="date-box">
-              <span>📅</span>
-              <input type="date" />
-            </div>
+    const token = sessionStorage.getItem("key");
+    const url = `https://studentmanagement-production-23b8.up.railway.app/api/v1/attendance/getAttendance?fromDate=${fromDate}&toDate=${toDate}&page=0&&size=500`;
 
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by roll or name..."
-              value={searchTerm}
-              onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-            />
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!response.ok) throw new Error(data.message);
+
+    const mapped = data.content.flatMap((block) =>
+      block.student.map((s) => ({
+        studentId: s.studentId,
+        studentName: s.studentName,
+        summary: s.summary,
+        attendance: s.attendance
+      }))
+    );
+
+    setAttendanceList(mapped);
+  };
+
+  useEffect(() => {
+    if (tab === "attendanceList") {
+      fetchAttendanceList();
+    }
+  }, [tab]);
+
+  return (
+    <div className="dashboard-root">
+      <div className="left-panel">
+        {/* PROFILE */}
+        <div className="profile-card">
+          <div className="teacher-icon">
+            <FaUserCircle size={70} />
           </div>
 
-          <div className="table-wrapper">
+          <div className="profile-info">
+            <h2 className="teacher-name">{loggedInUser?.name || "Teacher"}</h2>
+            <div className="teacher-row">
+              <span>📧 {loggedInUser?.email || loggedInUser?.sub}</span>
+              <span><strong>Department:</strong> {loggedInUser?.department || "-"}</span>
+              <span><strong>Subject:</strong> {loggedInUser?.subject || "-"}</span>
+            </div>
+          </div>
+        </div>
+
+        {/* TABS */}
+        <div className="tabs">
+          <button className={`tab-btn ${tab === "attendance" ? "active" : ""}`} onClick={() => setTab("attendance")}>
+            Mark Attendance
+          </button>
+          <button className={`tab-btn ${tab === "attendanceList" ? "active" : ""}`} onClick={() => setTab("attendanceList")}>
+            Attendance List
+          </button>
+          <button className={`tab-btn ${tab === "marks" ? "active" : ""}`} onClick={() => setTab("marks")}>
+            Add Marks
+          </button>
+        </div>
+
+        {/* MARK ATTENDANCE */}
+        {tab === "attendance" && (
+          <div className="cardss attendance-card">
+            <div className="toolbar">
+              <select value={selectedBranch} onChange={(e) => setSelectedBranch(e.target.value)}>
+                <option value="">All Branches</option>
+                {branches.map((b) => <option key={b}>{b}</option>)}
+              </select>
+
+              <select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+                <option value="">All Sections</option>
+                {sections.map((s) => <option key={s}>{s}</option>)}
+              </select>
+
+              <div className="date-box">
+                <span>📅</span>
+                <input type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} />
+              </div>
+
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+
             <table className="attendance-table">
               <thead>
                 <tr>
                   <th>Roll</th>
                   <th>Name</th>
-                  <th className="center">Present</th>
-                  <th className="center">Absent</th>
+                  <th>Present</th>
+                  <th>Absent</th>
                 </tr>
               </thead>
               <tbody>
                 {currentStudents.map((s) => (
                   <tr key={s.id}>
                     <td>{s.id}</td>
-                    <td className="student-name">{s.name}</td>
-                    <td className="center">
-                      <input type="radio" name={s.id} className="radio present" />
+                    <td>{s.name}</td>
+                    <td>
+                      <input type="radio" name={s.id} checked={attendanceMap[s.id] === "PRESENT"} onChange={() => setAttendanceMap({ ...attendanceMap, [s.id]: "PRESENT" })} />
                     </td>
-                    <td className="center">
-                      <input type="radio" name={s.id} className="radio absent" />
+                    <td>
+                      <input type="radio" name={s.id} checked={attendanceMap[s.id] === "ABSENT"} onChange={() => setAttendanceMap({ ...attendanceMap, [s.id]: "ABSENT" })} />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+
+            <button className="primary-btn submit-btn" onClick={submitAttendance}>
+              Submit Attendance
+            </button>
           </div>
+        )}
 
-          <div className="pagination">
-            <button disabled={currentPage === 1} onClick={() => setCurrentPage(currentPage - 1)}>Prev</button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                className={currentPage === i + 1 ? "active" : ""}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button disabled={currentPage === totalPages} onClick={() => setCurrentPage(currentPage + 1)}>Next</button>
+        {/* ATTENDANCE LIST (ACCORDION) */}
+        {tab === "attendanceList" && (
+          <div className="cardss attendance-card">
+            <div className="toolbar">
+              <div className="date-box">
+                <span>From</span>
+                <input type="date" value={fromDate} max={new Date().toISOString().split("T")[0]} onChange={(e) => setFromDate(e.target.value)} />
+              </div>
+              <div className="date-box">
+                <span>To</span>
+                <input type="date" value={toDate} max={new Date().toISOString().split("T")[0]} onChange={(e) => setToDate(e.target.value)} />
+              </div>
+
+             
+
+              <button className="primary-btn" style={{width:"8rem",height:"5vh"}} onClick={fetchAttendanceList}>Search</button>
+            </div>
+
+            <div className="accordion-container">
+              {attendanceList.map((s) => (
+                <details key={s.studentId} className="accordion-item">
+                  <summary className="accordion-header">
+                    <span className="student-name">{s.studentName}</span>
+                    <span>Total: {s.summary.totalClasses}</span>
+                    <span>Present: {s.summary.present}</span>
+                    <span>Absent: {s.summary.absent}</span>
+                    <span>{s.summary.percentage}%</span>
+                  </summary>
+
+                  <div className="accordion-body">
+                    <table className="attendance-table">
+                      <thead>
+                        <tr>
+    <th style={{ textAlign: "center" }}>Date</th>
+    <th style={{ textAlign: "center" }}>Subject</th>
+    <th style={{ textAlign: "center" }}>Status</th>
+  </tr>
+                      </thead>
+                      <tbody>
+                        {s.attendance.map((a, i) => (
+                          <tr key={i}>
+                            <td>{a.date}</td>
+                            <td>{a.subject}</td>
+                            <td>{a.status}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
+              ))}
+            </div>
           </div>
+        )}
 
-          <button className="primary-btn submit-btn">Submit Attendance</button>
-        </div>
-      )}
-
-      {/* MARKS */}
-      {tab === "marks" && (
-        <>
-          <input
-            type="text"
-            className="search-input marks-search"
-            placeholder="Search by roll or name..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-
+        {/* MARKS */}
+        {tab === "marks" && (
           <div className="grid">
             {filteredStudents.map((s) => (
               <div className="student-tile" key={s.id}>
-                <FaUserGraduate className="student-avatar-icon" size={55} color="rgb(8, 67, 131)" />
-                <div className="student-info">
-                  <p><strong>Roll No:</strong> {s.id}</p>
-                  <p><strong>Name:</strong> {s.name}</p>
-                </div>
-                <button onClick={() => { setSelectedStudent(s); setShowPopup(true); }}>
-                  Add
-                </button>
+                <FaUserGraduate size={55} />
+                <p>{s.name}</p>
+                <button>Add</button>
               </div>
             ))}
           </div>
-        </>
-      )}
+        )}
+      </div>
 
-      {/* MODAL */}
-      {showPopup && (
-        <div className="modal">
-          <div className="modal-box">
-            <h3>Add Marks - {selectedStudent.name}</h3>
-            <input type="number" placeholder="Enter marks" />
-            <div className="modal-actions">
-              <button className="primary-btn">Save</button>
-              <button className="secondary-btn" onClick={() => setShowPopup(false)}>Cancel</button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      <EventsPanel />
     </div>
-
-    {/* RIGHT EVENTS PANEL */}
-    <EventsPanel />
-
-  </div>
-);
-
+  );
 }

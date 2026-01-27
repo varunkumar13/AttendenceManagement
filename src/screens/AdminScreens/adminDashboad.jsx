@@ -4,6 +4,7 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import EventsPanel from "./EventsPanel";
 
+
 import {
   FaUserGraduate,
   FaChalkboardTeacher,
@@ -30,6 +31,7 @@ export default function AdminDashboard() {
 
 const [students, setStudents] = useState([]);
 const [teachers, setTeachers] = useState([]);
+
 
 const [studentsLoading, setStudentsLoading] = useState(false);
 const [teachersLoading, setTeachersLoading] = useState(false);
@@ -329,7 +331,7 @@ try {
 
             <table>
               <thead>
-                <tr><th>ID</th><th>Name</th><th>Class</th><th>Email</th><th>Class</th>
+                <tr><th>ID</th><th>Name</th><th>Email</th><th>Class</th>
   <th>Section</th>
   <th>Parent Phone</th></tr>
               </thead>
@@ -338,7 +340,6 @@ try {
                   <tr key={s.id}>
                     <td>{s.id}</td>
                     <td>{s.name}</td>
-                    <td>{s.class}</td>
                     <td>{s.email}</td>
                     <td>{s.class_name}</td>
                     <td>{s.section}</td>

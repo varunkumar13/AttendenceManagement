@@ -4,6 +4,7 @@ import "react-calendar/dist/Calendar.css";
 import EventsPanel from "../AdminScreens/EventsPanel";
 import profile from "../../assets/mainprofile.json"
 import Lottie from "lottie-react";
+import { jwtDecode } from "jwt-decode";
 
 
 import {
@@ -86,6 +87,7 @@ const assignments = [
   }
 ];
 
+
 const examTimetable = [
   {
     type: "Internal",
@@ -116,17 +118,74 @@ const defaultEvents = [
   { title: "Parents Meeting", date: "2026-01-25" }
 ];
 
-export default function studentDashboard() {
+export default function StudentDashboard() {
   const [events, setEvents] = useState(() => {
     const saved = localStorage.getItem("events");
     return saved ? JSON.parse(saved) : defaultEvents;
   });
 
-  const [activeTab, setActiveTab] = useState("assignments");
+ 
+    const [loggedInUser, setLoggedInUser] = useState(null);
+      const [attendanceList, setAttendanceList] = useState([]);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   useEffect(() => {
+    const today = new Date().toISOString().split("T")[0];
+    setFromDate(today);
+    setToDate(today);
+    
+  }, []);
+
+  const [activeTab, setActiveTab] = useState("assignments");
+    const fetchAttendanceList = async () => {
+    if (!fromDate || !toDate) {
+      alert("From and To date required");
+      return;
+    }
+
+    const token = sessionStorage.getItem("key");
+    const url = `https://studentmanagement-production-23b8.up.railway.app/api/v1/attendance/getAttendance?fromDate=${fromDate}&toDate=${toDate}&page=0&&size=500`;
+
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    const text = await response.text();
+    const data = text ? JSON.parse(text) : {};
+    if (!response.ok) throw new Error(data.message);
+
+    const mapped = data.content.flatMap((block) =>
+      block.student.map((s) => ({
+        studentId: s.studentId,
+        studentName: s.studentName,
+        summary: s.summary,
+        attendance: s.attendance
+      }))
+    );
+
+    setAttendanceList(mapped);
+  };
+  console.log(attendanceList);
+   useEffect(() => {
+    const token = sessionStorage.getItem("key");
+    if (token) {
+      try {
+        const decoded = jwtDecode(token);
+        setLoggedInUser(decoded);
+      } catch (err) {
+        console.error("Invalid token", err);
+      }
+    }
+  }, []);
+
+  console.log(attendanceList[0]?.summary?.present);
+  useEffect(() => {
     localStorage.setItem("events", JSON.stringify(events));
-  }, [events]);
+      if (fromDate && toDate) {
+    fetchAttendanceList();
+  }
+  }, [events,fromDate, toDate]);
 
   const pendingAssignments = assignments.filter(a => a.status === "pending");
   const completedAssignments = assignments.filter(a => a.status === "completed");
@@ -140,7 +199,13 @@ export default function studentDashboard() {
       year: 'numeric'
     });
   };
-
+// const handleAttendanceSearch = () => {
+//   if (!fromDate || !toDate) {
+//     alert("Please select From and To date");
+//     return;
+//   }
+//   fetchAttendanceList(); // your API function
+// };
   const isOverdue = (dueDate) => {
     return new Date(dueDate) < new Date();
   };
@@ -153,16 +218,16 @@ export default function studentDashboard() {
         <div style={{padding:"0px"}}>         <Lottie animationData={profile} loop={true}   />
 </div>
 
-        <h3>Jason Black <span>(1406)</span></h3>
-        <p>jasonblack@gmail.com</p>
-        <p>+88 9856418</p>
+        <h3>{loggedInUser?.name}<span>(1406)</span></h3>
+        <p>{loggedInUser?.sub}</p>
+        <p>9606763018</p>
 
         <div className="profile-details">
           <div><b>Gender:</b> Male</div>
-          <div><b>Father:</b> Alex Black</div>
-          <div><b>DOB:</b> 14 June 2006</div>
-          <div><b>Class:</b> 11th</div>
-          <div><b>Section:</b> Pink</div>
+          <div><b>Father:</b> Govinda</div>
+          <div><b>DOB:</b> 14 June 2001</div>
+          <div><b>Class:</b> {loggedInUser?.class}</div>
+          <div><b>Section:</b> {loggedInUser?.section}</div>
         </div>
 
         <div className="socials">
@@ -174,8 +239,8 @@ export default function studentDashboard() {
         <div className="about">
           <h4>About Student</h4>
           <p>
-            Hi there! My name is Jason and I am a 11th standard student.
-            I love going to school and learning new things every day.
+            Hi there! My name is {loggedInUser?.name} and I am a {loggedInUser?.class}  student.
+            I love going to collage and learning new things every day ,You can contact me on {loggedInUser?.sub} .
           </p>
         </div>
       </div>
@@ -183,37 +248,71 @@ export default function studentDashboard() {
       {/* CENTER */}
       <div className="center-content">
 
-        {/* STATS */}
-        <div className="stats-row">
-          <div className="stat-card">
-            <div className="stat-icon">
-              <FaBook />
-            </div>
-            <div className="stat-info">
-              <p>Total Assignments</p>
-              <h2>{assignments.length}</h2>
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-icon pending">
-              <FaClock />
-            </div>
-            <div className="stat-info">
-              <p>Pending</p>
-              <h2>{pendingAssignments.length}</h2>
-            </div>
-          </div>
-         
-          <div className="stat-card">
-            <div className="stat-icon">
-              <FaGraduationCap />
-            </div>
-            <div className="stat-info">
-              <p>Overall Progress</p>
-              <h2>{Math.round((completedAssignments.length / assignments.length) * 100)}%</h2>
-            </div>
-          </div>
-        </div>
+<div className="attendance-stats">
+
+  {/* ROW 1 → DATES */}
+  <div className="attendance-row">
+    <div className="stat-card">
+      <div className="stat-info" style={{display:"flex",flexDirection:"row",gap:"3rem"}}>
+        <p>From Date</p>
+        <input
+          type="date"
+          value={fromDate}
+          max={new Date().toISOString().split("T")[0]}
+          onChange={(e) => setFromDate(e.target.value)}
+        />
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-info" style={{display:"flex",flexDirection:"row",gap:"3rem"}}>
+        <p>To Date</p>
+        <input
+          type="date"
+          value={toDate}
+          max={new Date().toISOString().split("T")[0]}
+          onChange={(e) => setToDate(e.target.value)}
+        />
+      </div>
+    </div>
+  </div>
+
+  {/* ROW 2 → STATS */}
+  <div className="attendance-row">
+    <div className="stat-card">
+      <div className="stat-icon">
+        <FaCheckCircle />
+      </div>
+      <div className="stat-info">
+        <p>Days Present</p>
+      <h2>{attendanceList[0]?.summary?.present}</h2>
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-icon pending">
+        <FaClock />
+      </div>
+      <div className="stat-info">
+        <p>Days Absent</p>
+        <h2>{attendanceList[0]?.summary?.absent}</h2>
+      </div>
+    </div>
+
+    <div className="stat-card">
+      <div className="stat-icon">
+        <FaGraduationCap />
+      </div>
+      <div className="stat-info">
+        <p>Attendance %</p>
+        <h2>{attendanceList[0]?.summary?.percentage}%</h2>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+
 
         {/* TAB NAVIGATION */}
         <div className="tab-navigation">
