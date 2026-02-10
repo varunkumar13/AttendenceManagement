@@ -31,6 +31,8 @@ const getAssignmentStats = () => {
   const total = assignments.length;
   const completed = assignments.filter(a => a.status === "completed").length;
   const pending = assignments.filter(a => a.status === "pending").length;
+  // const [marksList, setMarksList] = useState([]);
+
   const overdue = assignments.filter(a => a.status === "pending" && new Date(a.dueDate) < new Date()).length;
   
   const completedPercent = Math.round((completed / total) * 100);
@@ -121,8 +123,10 @@ const defaultEvents = [
 export default function StudentDashboard() {
   const [events, setEvents] = useState(() => {
     const saved = localStorage.getItem("events");
+    
     return saved ? JSON.parse(saved) : defaultEvents;
   });
+const [marksList, setMarksList] = useState([]);
 
  
     const [loggedInUser, setLoggedInUser] = useState(null);
@@ -145,7 +149,7 @@ export default function StudentDashboard() {
     }
 
     const token = sessionStorage.getItem("key");
-    const url = `https://studentmanagement-production-23b8.up.railway.app/api/v1/attendance/getAttendance?fromDate=${fromDate}&toDate=${toDate}&page=0&&size=500`;
+    const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/attendance/getAttendance?fromDate=${fromDate}&toDate=${toDate}&page=0&&size=500`;
 
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` }
@@ -172,6 +176,7 @@ export default function StudentDashboard() {
     if (token) {
       try {
         const decoded = jwtDecode(token);
+        console.log(decoded)
         setLoggedInUser(decoded);
       } catch (err) {
         console.error("Invalid token", err);
@@ -199,6 +204,30 @@ export default function StudentDashboard() {
       year: 'numeric'
     });
   };
+const fetchMarks = async () => {
+  if (!loggedInUser?.sub) return;
+
+  const token = sessionStorage.getItem("key");
+
+  const response = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/api/v1/mark/getMark/${loggedInUser.sub}`,
+    {
+      headers: { Authorization: `Bearer ${token}` }
+    }
+  );
+
+  const data = await response.json();
+  setMarksList(data || []);
+};
+
+useEffect(() => {
+  if (loggedInUser?.sub) {
+    fetchMarks();
+  }
+}, [loggedInUser]);
+
+
+
 // const handleAttendanceSearch = () => {
 //   if (!fromDate || !toDate) {
 //     alert("Please select From and To date");
@@ -332,58 +361,20 @@ export default function StudentDashboard() {
 
         {/* ASSIGNMENTS TAB */}
         {activeTab === "assignments" && (
-          <div className="assignments-section">
+<div className="assignments-section">
             <div className="assignments-grid">
-              
-              {/* PENDING ASSIGNMENTS */}
-              <div className="assignment-column">
-                <div className="column-header pending">
-                  <FaClock />
-                  <h3>Pending ({pendingAssignments.length})</h3>
-                </div>
-                <div className="assignment-list">
-                  {pendingAssignments.map((assignment) => (
-                    <div key={assignment.id} className={`assignment-card ${isOverdue(assignment.dueDate) ? 'overdue' : ''}`}>
-                      <div className="assignment-header">
-                        <h4>{assignment.title}</h4>
-                        <span className="subject-tag">{assignment.subject}</span>
-                      </div>
-                      <p className="assignment-description">{assignment.description}</p>
-                      <div className="assignment-footer">
-                        <span className={`due-date ${isOverdue(assignment.dueDate) ? 'overdue' : ''}`}>
-                          Due: {formatDate(assignment.dueDate)}
-                        </span>
-                        {isOverdue(assignment.dueDate) && <span className="overdue-badge">Overdue</span>}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              {marksList.map((m) => (
+                <div key={m.marksId} className="assignment-card">
+                  <div className="assignment-header">
+                    <h4>{m.subject}</h4>
+                    <span className="subject-tag">{m.examType}</span>
+                  </div>
 
-              {/* COMPLETED ASSIGNMENTS */}
-              <div className="assignment-column">
-                <div className="column-header completed">
-                  <FaCheckCircle />
-                  <h3>Completed ({completedAssignments.length})</h3>
+                  <p><b>Date:</b> {formatDate(m.examDate)}</p>
+                  <p><b>Marks:</b> {m.marksObtained} / {m.total_marks}</p>
+                  <p><b>Remark:</b> {m.remark}</p>
                 </div>
-                <div className="assignment-list">
-                  {completedAssignments.map((assignment) => (
-                    <div key={assignment.id} className="assignment-card completed">
-                      <div className="assignment-header">
-                        <h4>{assignment.title}</h4>
-                        <span className="subject-tag">{assignment.subject}</span>
-                      </div>
-                      <p className="assignment-description">{assignment.description}</p>
-                      <div className="assignment-footer">
-                        <span className="due-date">
-                          Completed: {formatDate(assignment.dueDate)}
-                        </span>
-                        <FaCheckCircle className="completed-icon" />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         )}

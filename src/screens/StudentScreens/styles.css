@@ -226,6 +226,7 @@ body {
 }
 
 .assignments-grid {
+  
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
@@ -269,11 +270,11 @@ body {
 }
 
 .assignment-card {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 16px;
-  transition: all 0.2s ease;
+background: linear-gradient(135deg, #667eea 0%, rgb(8, 67, 131) 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 20px;
+  transition: transform 0.2s ease;
 }
 
 .assignment-card:hover {
@@ -300,9 +301,9 @@ body {
 
 .assignment-header h4 {
   margin: 0;
-  font-size: 14px;
+  font-size: 20px;
   font-weight: 600;
-  color: #1f2937;
+  color: white;
   flex: 1;
 }
 

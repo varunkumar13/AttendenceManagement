@@ -31,6 +31,18 @@ export default function TeacherScreen() {
   // pagination
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 1000;
+  const [showMarksPopup, setShowMarksPopup] = useState(false);
+const [selectedStudent, setSelectedStudent] = useState(null);
+
+const [marksForm, setMarksForm] = useState({
+  subject: "",
+  examType: "",
+  marksObtained: "",
+  total_marks: "",
+  examDate: "",
+  remark: ""
+});
+
   useEffect(() => {
     const token = sessionStorage.getItem("key");
     if (token) {
@@ -51,7 +63,7 @@ export default function TeacherScreen() {
     try {
       const token = sessionStorage.getItem("key");
       const response = await fetch(
-        `https://studentmanagement-production-23b8.up.railway.app/api/v1/user/getAll/${role}?page=0&&size=500`,
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/getAll/${role}?page=0&&size=500`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
@@ -101,7 +113,7 @@ export default function TeacherScreen() {
   const markAttendance = async (payload) => {
     const token = sessionStorage.getItem("key");
     const response = await fetch(
-      "https://studentmanagement-production-23b8.up.railway.app/api/v1/attendance/markAttendance",
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/attendance/markAttendance`,
       {
         method: "POST",
         headers: {
@@ -116,6 +128,59 @@ export default function TeacherScreen() {
       throw new Error(text || "Failed");
     }
   };
+
+  const submitMarks = async () => {
+  const token = sessionStorage.getItem("key");
+
+  const payload = {
+    studentDto: {
+      class_name: selectedStudent.branch,
+      section: selectedStudent.section,
+      parent_phone_number: ""
+    },
+    teacherDto: {
+      subject: loggedInUser?.subject,
+      department: loggedInUser?.department
+    },
+    subject: marksForm.subject,
+    examType: marksForm.examType,
+    marksObtained: Number(marksForm.marksObtained),
+    total_marks: Number(marksForm.total_marks),
+    examDate: marksForm.examDate,
+    remark: marksForm.remark,
+    teacherEmail: loggedInUser?.sub,
+    studentUserName: selectedStudent.email
+  };
+
+  const response = await fetch(
+    `${import.meta.env.VITE_API_BASE_URL}/api/v1/mark/addMark`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    }
+  );
+
+  if (!response.ok) {
+    alert("Failed to add marks");
+    return;
+  }
+
+  alert("Marks added successfully");
+  setShowMarksPopup(false);
+  setMarksForm({
+    subject: "",
+    examType: "",
+    marksObtained: "",
+    total_marks: "",
+    examDate: "",
+    remark: ""
+  });
+};
+
 
   const submitAttendance = async () => {
     if (!attendanceDate) {
@@ -153,7 +218,7 @@ export default function TeacherScreen() {
     }
 
     const token = sessionStorage.getItem("key");
-    const url = `https://studentmanagement-production-23b8.up.railway.app/api/v1/attendance/getAttendance?fromDate=${fromDate}&toDate=${toDate}&page=0&&size=500`;
+    const url = `${import.meta.env.VITE_API_BASE_URL}/api/v1/attendance/getAttendance?fromDate=${fromDate}&toDate=${toDate}&page=0&&size=500`;
 
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token}` }
@@ -182,7 +247,8 @@ export default function TeacherScreen() {
   }, [tab]);
 
   return (
-    <div className="dashboard-root">
+    <>
+<div className={`dashboard-root ${showMarksPopup ? "blurred" : ""}`}>
       <div className="left-panel">
         {/* PROFILE */}
         <div className="profile-card">
@@ -328,20 +394,78 @@ export default function TeacherScreen() {
         )}
 
         {/* MARKS */}
-        {tab === "marks" && (
+      {tab === "marks" && (
           <div className="grid">
             {filteredStudents.map((s) => (
               <div className="student-tile" key={s.id}>
                 <FaUserGraduate size={55} />
                 <p>{s.name}</p>
-                <button>Add</button>
+                {/* <p>{s.email}</p> */}
+                <button onClick={() => {
+                  setSelectedStudent(s);
+                  setShowMarksPopup(true);
+                }}>
+                  Add
+                </button>
               </div>
             ))}
           </div>
         )}
+
+
+      
+
+
+
+
       </div>
+      
 
       <EventsPanel />
     </div>
+            {showMarksPopup && (
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <h3>Add Marks - {selectedStudent?.name}</h3>
+
+              <input placeholder="Subject"
+                value={marksForm.subject}
+                onChange={e => setMarksForm({ ...marksForm, subject: e.target.value })}
+              />
+
+              <input placeholder="Exam Type"
+                value={marksForm.examType}
+                onChange={e => setMarksForm({ ...marksForm, examType: e.target.value })}
+              />
+
+              <input type="number" placeholder="Marks Obtained"
+                value={marksForm.marksObtained}
+                onChange={e => setMarksForm({ ...marksForm, marksObtained: e.target.value })}
+              />
+
+              <input type="number" placeholder="Total Marks"
+                value={marksForm.total_marks}
+                onChange={e => setMarksForm({ ...marksForm, total_marks: e.target.value })}
+              />
+
+              <input type="datetime-local"
+                value={marksForm.examDate}
+                onChange={e => setMarksForm({ ...marksForm, examDate: e.target.value })}
+              />
+
+              <input placeholder="Remark"
+                value={marksForm.remark}
+                onChange={e => setMarksForm({ ...marksForm, remark: e.target.value })}
+              />
+
+              <div className="modal-actions">
+                 <button className="" onClick={submitMarks}>Submit</button>
+                <button onClick={() => setShowMarksPopup(false)}>Cancel</button>
+               
+              </div>
+            </div>
+          </div>
+        )}
+        </>
   );
 }

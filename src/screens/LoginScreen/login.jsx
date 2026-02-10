@@ -31,7 +31,7 @@ const handleSubmit = async () => {
 
   try {
     const response = await fetch(
-      "https://studentmanagement-production-23b8.up.railway.app/api/v1/user/login",
+      `${import.meta.env.VITE_API_BASE_URL}/api/v1/user/login`,
       {
         method: "POST",
         headers: {

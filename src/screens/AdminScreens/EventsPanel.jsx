@@ -22,7 +22,7 @@ export default function EventsPanel() {
       const token = sessionStorage.getItem("key");
 
       const response = await fetch(
-        "https://studentmanagement-production-23b8.up.railway.app/api/v1/event/getAllEvent?page=0&size=10000",
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/event/getAllEvent?page=0&size=10000`,
         {
           method: "GET",
           headers: {
@@ -76,7 +76,7 @@ export default function EventsPanel() {
       const token = sessionStorage.getItem("key");
 
       const response = await fetch(
-        "https://studentmanagement-production-23b8.up.railway.app/api/v1/event/addEvent",
+        `${import.meta.env.VITE_API_BASE_URL}/api/v1/event/addEvent`,
         {
           method: "POST",
           headers: {
